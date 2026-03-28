@@ -1,0 +1,70 @@
+.app-header{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+}
+
+
+.logo-maki{
+    background-color: transparent;
+}
+
+.table-button{
+    background-color: #FFFFFF;
+}
+
+.stats-button{
+    background-color: #FFFFFF;
+}
+
+.movie-table{
+    background-color: #343434;
+    border-spacing: 100px;
+    border-collapse: collapse;
+    width: 60%;
+    padding : 12px 100px 32px 100px;
+}
+
+.movie-table thead{
+    padding : 200px 100px 100px;
+}
+
+.movie-table th{
+    color: #FFFFFF;
+    background-color: #224976;
+}
+
+.movie-table td{
+    align-items: center;
+    background-color: #211F63;
+    padding: 16px 34px;
+    border-bottom: 1px solid #1a1a1d;
+}
+
+.table-row{
+    color: #FFFFFF;
+    align-content: center;
+
+}
+
+
+.movie-cell{
+    display: flex;
+    align-items: center;
+    align-content: normal;
+    gap: 15px;
+}
+
+.movie-poster{
+    width: 45px;
+    height: 60px;
+    border-radius: 6px;
+    object-fit: cover
+}
+
+
+.stars{
+    color : #EF881A;
+    background-color: #FFFFFF;
+}
