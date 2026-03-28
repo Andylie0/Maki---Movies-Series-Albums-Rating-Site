@@ -1,0 +1,147 @@
+header{
+    z-index: 1;
+}
+
+.stats-header{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 60px;
+    background-color: rgba(33,31,99,0.5);
+    position: relative;
+}
+
+.logo-maki{
+    width: 70px;
+    height: 70px;
+}
+
+.search-bar{
+    display: flex;
+    width: 500px;
+    position:relative;
+}
+
+.search-input{
+    width: 100%;
+    height: 30px;
+    border : none;
+    outline: none;
+    font-size:17px;
+    padding: 0 35px 0 10px;
+}
+
+.search-icon{
+    margin-left: -30px;
+    color: rgba(0,0,0,0.5);
+    font-size: 17px;
+    border:none;
+    outline: none;
+    background:none;
+}
+
+.journal-button-header, .watchlist-button-header{
+    border:none;
+    outline: none;
+    background:none;
+    color: #FFFFFF;
+    cursor: pointer;
+    font-size: 20px;
+    opacity: 0.75;
+}
+
+.journal-button-header.active, .watchlist-button-header.active{
+    font-weight: bold;
+    opacity: 1;
+}
+
+.user-icon{
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.button-section{
+    margin-top: 30px;
+    margin-bottom: 16px;
+    margin-left: 186px;
+    display: flex;
+    gap: 16px;
+}
+
+.table-button, .stats-button{
+    font-size: 20px;
+    font-weight: bold;
+    border: none;
+    outline: none;
+    background:none;
+    color: #FFFFFF;
+    opacity: 0.67;
+    cursor: pointer;
+}
+
+.table-button.active, .stats-button.active{
+    text-decoration:underline;
+    opacity: 1;
+    text-decoration-color: forestgreen;
+    text-decoration-thickness: 4px;
+}
+
+.table-button:hover, .stats-button:hover{
+    opacity: 0.76;
+}
+
+.rating-distribution{
+    display: flex;
+    width: 80%;
+    margin-top: 35px;
+    margin-left: 10%;
+    background-color: #224976;
+    justify-content: space-between;
+    padding: 0 20px 0 20px;
+}
+
+.rating-distribution p{
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.charts-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+    margin-top: 30px;
+}
+
+.bar-chart-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+
+.star-label {
+    margin-top: 120px;
+    color: #EF881A;
+    font-size: 30px;
+}
+
+.recharts-surface {
+    background: transparent;
+}
+
+.recharts-cartesian-grid {
+    display: none;
+}
+
+.custom-tooltip {
+    background-color: rgba(33, 31, 99, 0.9);
+    border: 1px solid #E2AC17;
+    border-radius: 8px;
+    padding: 8px 14px;
+    color: white;
+    font-size: 15px;
+}
