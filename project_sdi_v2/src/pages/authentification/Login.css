@@ -117,3 +117,30 @@
 .signup-link:hover {
     text-decoration: underline;
 }
+
+@media (max-width: 768px) {
+    .login-container {
+        height: auto;
+        min-height: 100vh;
+        padding-bottom: 40px;
+    }
+
+    .image-title {
+        margin-top: 40px;
+        font-size: 24px;
+        gap: 10px;
+    }
+
+    .image-title img {
+        width: 55px;
+        height: 55px;
+    }
+
+    .mail-pass-login-combo {
+        width: 90%;
+    }
+
+    .login-button {
+        width: 100%;
+    }
+}

@@ -119,7 +119,8 @@ header{
 .bar-chart-wrapper {
     display: flex;
     align-items: center;
-    gap: 20px;
+    width: 66%;
+    overflow-x: auto;
 }
 
 
@@ -144,4 +145,56 @@ header{
     padding: 8px 14px;
     color: white;
     font-size: 15px;
+}
+
+@media (max-width: 768px) {
+
+    .stats-header {
+        padding: 10px;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .search-bar {
+        width: 100%;
+        order: 3;
+    }
+
+    .logo-maki {
+        width: 50px;
+        height: 50px;
+    }
+
+    .user-icon {
+        width: 40px;
+        height: 40px;
+    }
+
+    .journal-button-header, .watchlist-button-header {
+        font-size: 16px;
+    }
+
+    .button-section {
+        margin-left: 20px;
+    }
+
+    .rating-distribution {
+        width: 95%;
+        margin-left: 2.5%;
+    }
+
+    .charts-container {
+        gap: 20px;
+        margin-top: 15px;
+    }
+
+    .bar-chart-wrapper {
+        gap: 8px;
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .star-label {
+        font-size: 10px;
+    }
 }

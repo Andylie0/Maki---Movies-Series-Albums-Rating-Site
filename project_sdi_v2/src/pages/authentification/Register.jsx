@@ -1,13 +1,44 @@
 import {useNavigate} from "react-router-dom"
 import './Register.css'
 import MakiLogo from "../../assets/MAKI.png";
+import {useState} from "react";
 
 
 export default function Register() {
     const navigate = useNavigate();
 
-    function handleSignUp() {
-        navigate('/journal');
+    const [password, setPassword] = useState("");
+    const [username, setUsername] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+
+    async function handleSignUp(username, password, confirmPassword) {
+        if (password !== confirmPassword) {
+            alert("Passwords do not match!");
+            return;
+        }
+        const payload = {
+            username : username,
+            password : password,
+        }
+
+        try{
+            const response =  await fetch("http://localhost:8000/auth/register", {
+                method : "POST",
+                headers:  {"Content-Type": "application/json"},
+                body: JSON.stringify(payload),
+            });
+
+            if(response.ok)
+                navigate('/');
+            else {
+                console.error("Login failed:", response.statusText);
+            }
+        }
+        catch (error) {
+            console.error("Error during registration:", error);
+        }
+
+
     }
 
     function handleLogin(){
@@ -21,24 +52,20 @@ export default function Register() {
                 <h1>We are glad to have you!</h1>
             </div>
             <div className = "combo-signup">
-                <div className="mail">
-                    <p>Mail: </p>
-                    <input type="text" placeholder="Type your mail here..." />
-                </div>
                 <div className="user">
                     <p>Username: </p>
-                    <input type="text" placeholder="Type your username here..." />
+                    <input type="text" placeholder="Type your username here..."  onChange={(e) => setUsername(e.target.value)}/>
                 </div>
                 <div className="password">
                     <p>Password: </p>
-                    <input type="password" placeholder="Type your password here..."/>
+                    <input type="password" placeholder="Type your password here..." onChange={(e) => setPassword(e.target.value)}/>
                 </div>
                 <div className="password">
                     <p>Confirm Password: </p>
-                    <input type="password" placeholder="Rewrite your password here..."/>
+                    <input type="password" placeholder="Rewrite your password here..." onChange={(e) => setConfirmPassword(e.target.value)}/>
                 </div>
                 <div className="signup-section">
-                    <button className="register-button" onClick={() => handleSignUp()}>Register!</button>
+                    <button className="register-button" onClick={() => handleSignUp(username,password,confirmPassword)}>Register!</button>
                     <span className="login-link" onClick={() => handleLogin()}>Already have an account? Back to log in.</span>
                 </div>
             </div>

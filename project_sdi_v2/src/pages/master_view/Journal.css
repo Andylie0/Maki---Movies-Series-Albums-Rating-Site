@@ -2,6 +2,10 @@ header,main{
     z-index: 1;
 }
 
+main{
+    min-height: 110vh;
+}
+
 .app-header{
     display: flex;
     justify-content: space-between;
@@ -13,6 +17,7 @@ header,main{
 .logo-maki{
     width: 70px;
     height: 70px;
+    cursor:pointer;
 }
 
 .search-bar{
@@ -204,6 +209,7 @@ header,main{
     align-items: center;
     align-content: normal;
     gap: 15px;
+    cursor:pointer;
 }
 
 .movie-poster{
@@ -225,44 +231,11 @@ header,main{
     gap: 10px;
 }
 
-.go-to{
+.infinite-scroll-status{
     margin-top: 6px;
     font-size: 18px;
     color:white;
     font-weight: bold;
-}
-
-.page-input{
-    width: 300px;
-    height: 30px;
-    border: none;
-    outline: none;
-    border-radius: 6px;
-    padding: 0 10px;
-}
-
-.pagination-buttons{
-    margin-left: auto;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 6px;
-    padding-right: 200px;
-}
-
-.pagination-buttons button{
-    background: none;
-    border: none;
-    color: #FFFFFF;
-    cursor: pointer;
-    padding: 4px 10px;
-    border-radius: 4px;
-    font-size: 16px;
-}
-
-.pagination-buttons button.page-active{
-    font-weight: bold;
-    font-size: 18px;
 }
 
 .overlay-modal{
@@ -389,3 +362,75 @@ header,main{
     cursor: pointer;
 }
 
+
+@media (max-width: 768px) {
+
+    .app-header {
+        padding: 10px;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .search-bar {
+        width: 100%;
+        order: 3;
+    }
+
+    .logo-maki {
+        width: 50px;
+        height: 50px;
+    }
+
+    .user-icon {
+        width: 40px;
+        height: 40px;
+    }
+
+    .journal-button-header, .watchlist-button-header {
+        font-size: 16px;
+    }
+
+    .button-section {
+        margin-left: 20px;
+    }
+
+    .movie-table {
+        width: 100%;
+    }
+
+    .movie-table td {
+        padding: 8px 10px;
+        font-size: 13px;
+    }
+
+    .edit-button, .delete-button {
+        font-size: 20px;
+        padding: 6px;
+    }
+
+    .movie-poster {
+        width: 35px;
+        height: 45px;
+    }
+
+    .infinite-scroll-status{
+        margin-top: 6px;
+        font-size: 10px;
+        color:white;
+        font-weight: bold;
+    }
+
+    .modal-content {
+        width: 90%;
+        padding: 20px;
+    }
+
+    .modal-movie-info {
+        flex-direction: column;
+    }
+
+    .modal-movie-info img {
+        width: 100px;
+        height: 140px;
+    }
+}

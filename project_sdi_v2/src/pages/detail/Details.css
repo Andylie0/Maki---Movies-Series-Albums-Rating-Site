@@ -187,3 +187,83 @@ header, main{
     cursor: pointer;
 }
 
+@media (max-width: 768px) {
+
+    .movie-details {
+        flex-direction: column;
+        padding-top: 20px;
+        gap: 10px;
+    }
+
+    .poster {
+        padding-left: 0;
+        align-items: center;
+    }
+
+    .poster img {
+        width: 150px;
+        height: 220px;
+    }
+
+    .movie-info2 {
+        padding: 0 20px;
+    }
+
+    .details-desc {
+        font-size: 16px;
+    }
+
+    .rate-watchlist {
+        align-items: center;
+    }
+
+    .rating-section {
+        padding-bottom: 20px;
+        padding-right: 0;
+        justify-content: center;
+    }
+
+    .star {
+        font-size: 50px;
+        margin-top: 0;
+        margin-left: 0;
+    }
+
+    .watchlist-button {
+        width: 80%;
+        margin: 0 auto 20px auto;
+        font-size: 16px;
+    }
+
+    .add-review-button {
+        margin: 10px 20px;
+        font-size: 16px;
+    }
+
+    .review-section {
+        margin-left: 20px;
+        margin-right: 20px;
+    }
+
+    .reviewer-1, .reviewer-2 {
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .poffff {
+        gap: 15px;
+        margin-left: 0;
+    }
+
+    .starsss {
+        margin-right: 0;
+        font-size: 20px;
+        margin-left:    10px;
+    }
+
+    .all-reviews {
+        font-size: 24px;
+        margin-bottom: 40px;
+    }
+}
+

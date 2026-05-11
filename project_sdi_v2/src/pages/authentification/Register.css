@@ -103,3 +103,30 @@
 .login-link:hover {
     text-decoration: underline;
 }
+
+@media (max-width: 768px) {
+    .register-container {
+        height: auto;
+        min-height: 100vh;
+        padding-bottom: 40px;
+    }
+
+    .image-title {
+        margin-top: 30px;
+        font-size: 20px;
+        gap: 10px;
+    }
+
+    .image-title img {
+        width: 55px;
+        height: 55px;
+    }
+
+    .combo-signup {
+        width: 90%;
+    }
+
+    .register-button {
+        width: 100%;
+    }
+}

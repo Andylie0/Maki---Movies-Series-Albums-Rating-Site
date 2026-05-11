@@ -1,34 +1,152 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './Journal.css'
+import '../../App.css'
 import MakiLogo from '../../assets/MAKI.png'
 import ProfileIcon from '../../assets/profile_img.png'
 import ParticlesBackground from './Particles.jsx'
 import {useNavigate} from "react-router-dom"
+import Cookie from 'js-cookie'
 
-export function Journal({allReviews, setReviewState, allMovies}){
-    const smovies = allMovies
-    const [displayed, setDisplayed] = useState(allReviews)
+export function Journal({allReviews, setReviewState, allMovies, isOnline, addToQueue}){
+    const storedUser = JSON.parse(localStorage.getItem('user')) || null;
+    const userId = storedUser.id;
 
-    const [activeTab, setActiveTab] = useState("table")
-    const [activePage, setActivePage] = useState("journal")
-
-    const [isEditing, setIsEditing] = useState(false)
-    const [selectedReview, setSelectedReview] = useState(null)
-    const [editText, setEditText] = useState("")
-    const [editRating, setEditRating] = useState(0)
-
+    const [isLoading, setIsLoading] = useState(false);
+    const [activeTab, setActiveTab] = useState(Cookie.get("activeTab") || "table");
+    const [activePage, setActivePage] = useState("journal");
+    const [isEditing, setIsEditing] = useState(false);
+    const [selectedReview, setSelectedReview] = useState(null);
+    const [editText, setEditText] = useState("");
+    const [editRating, setEditRating] = useState(0);
+    const [tableSearch, setTableSearch] = useState("");
     const [searchInput, setSearchInput] = useState("");
+    const [totalCount, setTotalCount] = useState(0);
+    const [currentPage, setCurrentPage] = useState(1);
 
-    const [currentPage, setCurrentPage] = useState(1)
-    const itemsPerPage = 7
-
-    const totalPages = Math.ceil(displayed.length / itemsPerPage)
-    const currentReviews = displayed.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-
+    const itemsPerPage = 7;
+    const totalPages = Math.ceil(totalCount / itemsPerPage);
     const navigate = useNavigate();
+
+    const loadReviews = async (pageNumber, isNewSearch = false) => {
+        if (isLoading || !isOnline) return;
+        setIsLoading(true);
+        const GET_REVIEWS_QUERY = `
+            query GetJournalReviews($page: Int!, $size: Int!, $userId: Int) {
+                getReviews(page: $page, size: $size, userId : $userId) {
+                    total
+                    items{
+                        id
+                        movieId
+                        text
+                        rating
+                        likes
+                        userId
+                        movie {
+                            id
+                            name
+                            rating
+                            numberOfReviews
+                            duration
+                            yearReleased
+                            image
+                            description
+                            type
+                        }
+                    }
+                }
+            }
+        `;
+        try {
+            const response = await fetch("http://localhost:8000/graphql", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    query: GET_REVIEWS_QUERY,
+                    variables: {
+                        page: pageNumber,
+                        size: itemsPerPage,
+                        userId: userId
+                    }
+                })
+            });
+            const result = await response.json();
+            if (result.errors) {
+                console.error("GraphQL Server Errors:", result.errors);
+                return;
+            }
+            const { items, total } = result.data.getReviews;
+            if (isNewSearch) {
+                setReviewState(items);
+            } else {
+                setReviewState(prev => {
+                    const existingIds = new Set(prev.map(r => r.id));
+                    const filtered = items.filter(item => !existingIds.has(item.id));
+                    return [...prev, ...filtered];
+                });
+            }
+            setTotalCount(total);
+        } catch (error) {
+            console.error("GraphQL Error:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        loadReviews(currentPage, currentPage === 1);
+    }, [currentPage, tableSearch, isOnline]);
+
+    useEffect(() => {
+        const socket = new WebSocket('ws://localhost:8000/ws');
+
+        socket.onmessage = (event) => {
+            const message = JSON.parse(event.data);
+
+            if (message.type === "NEW_REVIEW" || message.type === "NEW_DATA_ALERT") {
+                setCurrentPage(1);
+                loadReviews(1, true);
+            }
+        };
+
+        return () => socket.close();
+    }, []);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+
+            const nearBottom = scrollTop + clientHeight >= scrollHeight - 300;
+
+            if (nearBottom && !isLoading && currentPage < totalPages) {
+                console.log("Loading page:", currentPage + 1);
+                setCurrentPage(prev => prev + 1);
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [isLoading, currentPage, totalPages]);
+
+    useEffect(() => {
+        const delay = !isOnline ? 0 : 2000;
+
+        const timer = setTimeout(() => {
+            loadReviews(currentPage, currentPage === 1);
+        }, delay);
+
+        return () => clearTimeout(timer);
+    }, [currentPage, tableSearch, isOnline]);
+
+    const currentReviews = allReviews;
 
     function handleStats(){
         navigate("/stats");
+    }
+
+    function handleAbout(){
+        navigate("/about");
     }
 
     //function for edit button
@@ -40,50 +158,103 @@ export function Journal({allReviews, setReviewState, allMovies}){
     }
 
     //function to save edit from modal/pop-up
-    function handleSave(text, rating){
-        const updated = allReviews.map(review =>
-            review.id === selectedReview.id ? {...review, text, rating} : review
-        );
-        setReviewState(updated);
-        setDisplayed(updated);
-        setIsEditing(false);
+    async function handleSave(text, rating) {
+        const mId = selectedReview.movieId ||
+            selectedReview.movie_id ||
+            selectedReview.movie?.id;
+
+        if (!mId) {
+            console.error("Critical Error: Could not find a movie ID in selectedReview", selectedReview);
+            alert("Logic error: Movie ID is missing. Check the console.");
+            return;
+        }
+
+        const payload = {
+            movie_id: parseInt(mId), // Ensure it's a number
+            text: text,
+            rating: parseFloat(rating),
+            likes: selectedReview.likes || 0,
+        };
+
+        if (!isOnline) {
+            addToQueue({
+                url: `/reviews/${selectedReview.id}?user_id=${userId}`,
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const updated = allReviews.map(r =>
+                r.id === selectedReview.id ? { ...selectedReview, text, rating } : r
+            );
+            setReviewState(updated);
+            setIsEditing(false);
+            return;
+        }
+
+        const response = await fetch(`http://localhost:8000/reviews/${selectedReview.id}?user_id=${userId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+
+        if (response.ok) {
+            setIsEditing(false);
+            setCurrentPage(1);
+            loadReviews(1, true);
+        } else {
+            const errorData = await response.json();
+            console.error("Validation Error Details:", errorData.detail);
+            alert(`Error: ${errorData.detail[0].msg} for field: ${errorData.detail[0].loc[1]}`);
+        }
     }
 
     //FUNCTION for delete button
-    function deleteReview(id){
-        let p = allReviews.filter(review => review.id !== id);
-        setReviewState(p);
-        setDisplayed(p);
-    }
-
-    //Function for search-pagination
-    function handleSearch(string){
-        if (string === "") {
-            setDisplayed(allReviews);
+    async function deleteReview(id) {
+        if (!isOnline) {
+            addToQueue({ url: `/reviews/${id}?user_id=${userId}`, method: 'DELETE' });
+            setReviewState(allReviews.filter(r => r.id !== id));
             return;
         }
-        let p = allReviews.filter(review => {
-            const movie = smovies.find(movie => movie.id === review.movie_id);
-            return movie.name.includes(string)});
-        setDisplayed(p);
+
+        const response = await fetch(`http://localhost:8000/reviews/${id}?user_id=${userId}`, {
+            method: 'DELETE'
+        });
+
+        if (response.ok) {
+            setCurrentPage(1);
+            loadReviews(1,true);
+        }
     }
 
     function handleSearchNav() {
-        const movie = smovies.find(movie => movie.name.toLowerCase().includes(searchInput.toLowerCase()))
-        if(movie)
-            navigate(`/details/${movie.id}`)
+        const query = searchInput.toLowerCase();
+        const movie = allMovies.find(m => m.name.toLowerCase().includes(query));
+        if (movie) {
+            setSearchInput("");
+            navigate(`/details/${movie.id}`);
+        }
     }
 
     // for stars rating
     function stars(rating){
         let result = "";
         for (let i = 0; i < 5; i++) {
-            if (i == Math.floor(rating) && rating - Math.floor(rating) >= 0.5)
+            if (i === Math.floor(rating) && rating - Math.floor(rating) >= 0.5)
                 result += "⯪";
             else
                 i < rating ? result += "★" : result += "☆";
         }
         return result;
+    }
+
+    function handleTabChange(tab){
+        setActiveTab(tab);
+        Cookie.set('activeTab', tab, { expires: 7 });
+    }
+
+    function handlePoster(movie){
+        navigate(`/details/${movie.id}`)
     }
 
     const suggestions = searchInput.length > 0
@@ -96,7 +267,7 @@ export function Journal({allReviews, setReviewState, allMovies}){
         <div className="App">
             <ParticlesBackground colour="#FFCE27"/>
             <header className="app-header">
-                <img src = {MakiLogo} alt= "logo_maki" className="logo-maki"/>
+                <img src = {MakiLogo} alt= "logo_maki" className="logo-maki" onClick={() => handleAbout()}/>
                 <div className="search-bar">
                     <input type="text" placeholder="Search..." className="search-input"
                         onChange={(e) => setSearchInput(e.target.value)}
@@ -134,9 +305,9 @@ export function Journal({allReviews, setReviewState, allMovies}){
 
                 <div className="button-section">
                     <button className={`table-button ${activeTab === "table" ? "active" : ""}`}
-                            onClick={() => setActiveTab("table")} >Table</button>
+                            onClick={() => handleTabChange("table")} >Table</button>
                     <button className={`stats-button ${activeTab === "stats" ? "active" : ""}`}
-                            onClick={() => {setActiveTab("stats"); handleStats()}}>Statistics</button>
+                            onClick={() => {handleTabChange("stats"); handleStats()}}>Statistics</button>
                 </div>
 
                 <table className="movie-table">
@@ -152,12 +323,15 @@ export function Journal({allReviews, setReviewState, allMovies}){
                     </thead>
                     <tbody>
                     {currentReviews.map((review) => {
-                        const movie = smovies.find(movie => movie.id === review.movie_id)
+                        const movie = review?.movie;
+                        if (!movie) {
+                            return null;
+                        }
                         return(
                             <tr key={review.id} className="table-row">
                                 <td className="movie-cell">
                                     <img src = {movie.image}
-                                         alt = {movie.name} className="movie-poster"/>
+                                         alt = {movie.name} className="movie-poster" onClick={() => handlePoster(movie)}/>
                                     {movie.name}
                                 </td>
                                 <td>{movie.year_released}</td>
@@ -170,27 +344,11 @@ export function Journal({allReviews, setReviewState, allMovies}){
                     })}
                     </tbody>
                 </table>
-                <div className="pagination-section">
-                    <span className="go-to">Go to:</span>
-                    <input type="text" className="page-input"
-                           onChange={(e) => handleSearch(e.target.value)}
-                    />
-                    <div className="pagination-buttons">
-                        <button onClick={() => setCurrentPage(1)}>{"<<"}</button>
-                        <button onClick={() => setCurrentPage(
-                            p => Math.max(p-1, 1))}>{"<"}</button>
-
-                        {Array.from({length: totalPages}, (_, i) => i + 1).map(page => (
-                            <button
-                                key = {page}
-                                className = {currentPage === page ? "page-active" : ""}
-                                onClick = {() => setCurrentPage(page)}>{page}</button>
-                        ))}
-
-                        <button onClick={() => setCurrentPage(
-                            p => Math.min(p+1, totalPages))}>{">"}</button>
-                        <button onClick={() => setCurrentPage(totalPages)}>{">>"}</button>
-                    </div>
+                <div className="infinite-scroll-status" style={{ textAlign: 'center', padding: '20px' }}>
+                    {isLoading && <p>Loading more reviews...</p>}
+                    {!isLoading && currentPage >= totalPages && allReviews.length > 0 && (
+                        <p>You've reached the end of the journal.</p>
+                    )}
                 </div>
 
                 {isEditing && selectedReview &&(
@@ -200,10 +358,12 @@ export function Journal({allReviews, setReviewState, allMovies}){
                             <h2>Edit Review</h2>
                             <div className = "modal-movie-info">
                                 {(() => {
-                                    const movie = smovies.find(m => m.id === selectedReview.movie_id)
+                                    const movie = selectedReview?.movie;
+                                    if (!movie) {
+                                        return <p>Loading movie data...</p>;
+                                    }
                                     return (
                                         <>
-
                                             <img src={movie.image} alt={movie.name} />
                                             <div className="movie-info">
                                                 <h2>{movie.name} {movie.year_released}</h2>

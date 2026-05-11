@@ -1,12 +1,46 @@
 import { useNavigate } from 'react-router-dom'
 import './Login.css'
 import MakiLogo from '../../assets/MAKI.png'
+import helloDaddyAudio from '../../assets/hello-daddy-sound-effect-made-with-Voicemod.mp3'
+import {useState} from "react";
 
 export function Login(){
     const navigate = useNavigate();
 
-    const handleLogin = () => {
+    const [password, setPassword] = useState("");
+    const [username, setUsername] = useState("");
+
+    const successHandleLogin = () => {
+        const audio = new Audio(helloDaddyAudio);
+        audio.play();
         navigate("/journal");
+    }
+
+    async function handleLogin(username, password) {
+        const payload = {
+            username : username,
+            password : password,
+        }
+
+        try {
+            const response = await fetch("http://localhost:8000/auth/login", {
+                method : "POST",
+                headers:  {"Content-Type": "application/json"},
+                body: JSON.stringify(payload),
+            });
+
+            if (response.ok) {
+                const userData = await response.json();
+                localStorage.setItem("user", JSON.stringify(userData));
+                successHandleLogin();
+            } else {
+                console.error("Login failed:", response.statusText);
+            }
+
+        }
+        catch (error) {
+            console.error("Error during login:", error);
+        }
     }
 
     const handleRegister = () => {
@@ -21,16 +55,16 @@ export function Login(){
             </div>
             <div className = "mail-pass-login-combo">
                 <div className="mail">
-                    <p>Mail: </p>
-                    <input type="text" placeholder="Type your mail here..." />
+                    <p>Username: </p>
+                    <input type="text" placeholder="Type your username here..." onChange={(e) => setUsername(e.target.value)} />
                 </div>
                 <div className="password">
                     <p>Password: </p>
-                    <input type="password" placeholder="Type your password here..."/>
+                    <input type="password" placeholder="Type your password here..." onChange={(e) => setPassword(e.target.value)}/>
                     <span className="forgot-password">Forgot Password?</span>
                 </div>
                 <div className="login-section">
-                    <button className="login-button" onClick={() => handleLogin()}>Log in!</button>
+                    <button className="login-button" onClick={() => handleLogin(username, password)}>Log in!</button>
                     <span className="signup-link" onClick={() => handleRegister()}>Don’t have an account? Sign up</span>
                 </div>
             </div>

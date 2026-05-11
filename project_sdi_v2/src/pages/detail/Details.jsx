@@ -3,14 +3,17 @@ import MakiLogo from "../../assets/MAKI.png";
 import ProfileIcon from "../../assets/profile_img.png";
 import FWEH from "../../assets/FWEH.png";
 import hidoina from "../../assets/hidoina.png";
-import {useState} from "react";
+import {useState, useEffect} from "react";
 import './Details.css'
+import Cookie from 'js-cookie'
 
 
-
-export default function Details({setReviewState, allReviews, allMovies}) {
+export default function Details({ allReviews, setReviewState, allMovies, isOnline, addToQueue}) {
     const {id} = useParams();
-    const movie = allMovies.find(movie => movie.id === parseInt(id));
+    const [movie, setMovie] = useState(null);
+
+    const storedUser = JSON.parse(localStorage.getItem('user')) || null;
+    const userId = storedUser.id;
 
     const navigate = useNavigate();
 
@@ -23,11 +26,133 @@ export default function Details({setReviewState, allReviews, allMovies}) {
     const [editRating, setEditRating] = useState(0)
     const [editText, setEditText] = useState("")
 
-    function revrev(movie){
-        if (movie.reviews >= 1000){
-            return Math.floor(movie.reviews/1000) + "." + (Math.floor(movie.reviews/100)%10) + "k";
+    const fetchMovieData = async () => {
+        const MOVIE_DETAILS_QUERY = `
+            query GetMovieDetails($id: Int!) {
+                getMovie(id: $id) {
+                    id
+                    name
+                    rating
+                    numberOfReviews
+                    duration
+                    yearReleased
+                    image
+                    description
+                    type
+                    reviews {
+                        id
+                        text
+                        rating
+                        likes
+                        userId
+                    }
+                }
+            }
+        `;
+
+        try {
+            const response = await fetch("http://localhost:8000/graphql", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    query: MOVIE_DETAILS_QUERY,
+                    variables: { id: parseInt(id) }
+                })
+            });
+
+            const result = await response.json();
+            const movieData = result.data.getMovie;
+
+            if (movieData) {
+                setMovie(movieData);
+                setReviewState(movieData.reviews);
+            }
+        } catch (error) {
+            console.error("GraphQL Details Error:", error);
         }
-        return movie.reviews;
+    };
+
+    useEffect(() => {
+        let cancelled = false;
+
+        async function load() {
+            const MOVIE_DETAILS_QUERY = `
+                query GetMovieDetails($id: Int!) {
+                    getMovie(id: $id) {
+                        id
+                        name
+                        rating
+                        numberOfReviews
+                        duration
+                        yearReleased
+                        image
+                        description
+                        type
+                        reviews {
+                            id
+                            movieId
+                            text
+                            rating
+                            likes
+                            userId
+                        }
+                    }
+                }
+            `;
+            try {
+                const response = await fetch("http://localhost:8000/graphql", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        query: MOVIE_DETAILS_QUERY,
+                        variables: { id: parseInt(id) }
+                    })
+                });
+                if (response.ok) {
+                    const result = await response.json();
+                    const data = result.data.getMovie;
+                    if (!cancelled) {
+                        setMovie(data);
+                        setReviewState(data.reviews);
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching movie details:", error);
+            }
+        }
+        load();
+        const visited = JSON.parse(Cookie.get('visitedMovies') || '[]');
+        const movieIdInt = parseInt(id);
+        if (!visited.includes(movieIdInt)) {
+            visited.push(movieIdInt);
+            Cookie.set('visitedMovies', JSON.stringify(visited), { expires: 7 });
+        }
+
+        return () => {
+            cancelled = true;
+        }
+    }, [id]);
+
+    useEffect(() => {
+        const socket = new WebSocket('ws://localhost:8000/ws');
+
+        socket.onmessage = (event) => {
+            const message = JSON.parse(event.data);
+
+            if (message.type === "NEW_DATA_ALERT" || message.type === "NEW_REVIEW") {
+                console.log("Details page refreshing due to server alert...");
+                fetchMovieData();
+            }
+        };
+
+        return () => socket.close();
+    }, [id]);
+
+    function revrev(m){
+        if (m.numberOfReviews >= 1000) {
+            return Math.floor(m.numberOfReviews / 1000) + "." + (Math.floor(m.numberOfReviews / 100) % 10) + "k";
+        }
+        return m.numberOfReviews;
     }
 
     function handleSearchNav() {
@@ -38,38 +163,115 @@ export default function Details({setReviewState, allReviews, allMovies}) {
         }
     }
 
-    function handleAdd(review){
-        if(review) {
+    function handleAdd(review) {
+        if (review) {
             setEditText(review.text);
             setEditRating(review.rating);
             setSelectedReview(review);
             setNewReview(false);
-        }
-        else {
+        } else {
+            setEditText("");
+            setEditRating(0);
             setNewReview(true);
             setSelectedReview(null);
         }
         setIsEditing(true);
     }
 
-    function handleSave(text, rating){
-        const updated = allReviews.map(review =>
-            review.id === selectedReview.id ? {...review, text, rating} : review
-        );
-        setReviewState(updated);
-        setIsEditing(false);
+    async function handleSave(text, rating) {
+        const payload = {
+            movie_id: parseInt(id),
+            text: text,
+            rating: parseFloat(rating),
+            likes: selectedReview.likes || 0,
+        };
+
+        if (!isOnline) {
+            addToQueue({
+                url: `/reviews/${selectedReview.id}?user_id=${userId}`,
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const updated = allReviews.map(r =>
+                r.id === selectedReview.id ? { ...selectedReview, text, rating } : r
+            );
+            setReviewState(updated);
+            setIsEditing(false);
+            return;
+        }
+
+        try {
+            const response = await fetch(`http://localhost:8000/reviews/${selectedReview.id}?user_id=${userId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+
+            if (response.ok) {
+                setIsEditing(false);
+                fetchMovieData();
+            } else {
+                const errorData = await response.json();
+                alert(`Edit failed: ${errorData.detail[0].msg}`);
+            }
+        } catch (error) {
+            console.error("Network error during handleSave:", error);
+        }
     }
 
-    function handleSaveNew(text, rating){
-        const updated = [ {movie_id: movie.id, text, rating},...allReviews];
-        allReviews = updated;
-        setReviewState(updated);
-        setIsEditing(false);
+    async function handleSaveNew(text, rating) {
+        const payload = {
+            movie_id: parseInt(id),
+            text: text,
+            rating: parseFloat(rating),
+            likes: 0,
+        };
+
+        if (!isOnline) {
+            const tempId = Date.now();
+            const newRev = { ...payload, id: tempId };
+
+            addToQueue({
+                url: `/reviews/?user_id=${userId}`,
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            setReviewState(prev => [newRev, ...prev]);
+            setIsEditing(false);
+            return;
+        }
+
+        try {
+            const response = await fetch(`http://localhost:8000/reviews/?user_id=${userId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+
+            if (response.ok) {
+                setIsEditing(false);
+                fetchMovieData();
+            } else {
+                const errorDetail = await response.json();
+                alert(`Server error: ${errorDetail.detail?.[0]?.msg || "Validation Error"}`);
+            }
+        } catch (error) {
+            console.error("Network error during handleSaveNew:", error);
+        }
     }
 
     function handleJournal(){
         setActivePage("journal");
+        Cookie.set('activeTab', "table", { expires: 7 });
         navigate("/journal");
+    }
+
+    function handleAbout(){
+        navigate("/about");
     }
 
     function handleAllReviews(){
@@ -82,10 +284,19 @@ export default function Details({setReviewState, allReviews, allMovies}) {
         ).slice(0, 3)
         : []
 
+    if (!movie) {
+        return (
+            <div className="details-loading">
+                <p>Loading movie details...</p>
+            </div>
+        );
+    }
+
     return(
         <div className="details">
+
             <header className="app-header">
-                <img src = {MakiLogo} alt= "logo_maki" className="logo-maki"/>
+                <img src = {MakiLogo} alt= "logo_maki" className="logo-maki" onClick={() => handleAbout()} />
                 <div className="search-bar">
                     <input type="text" placeholder="Search..." className="search-input"
                            onChange={(e) => setSearchInput(e.target.value)}
@@ -144,13 +355,8 @@ export default function Details({setReviewState, allReviews, allMovies}) {
                 </div>
 
                 <div className="add-edit-review">
-                    <div className="add-review-button" onClick={() => handleAdd(allReviews.find(
-                        review => {
-                            if (review.movie_id === movie.id)
-                                return review;
-                            return null;
-                        }
-                    ))}>
+                    <div className="add-review-button"
+                         onClick={() => handleAdd(movie.reviews?.find(r => r.userId === parseInt(userId)))}>
                         <span className="add">Add a review or edit your review!</span>
                         <span className="starss">★★★★★</span>
                     </div>
@@ -167,8 +373,8 @@ export default function Details({setReviewState, allReviews, allMovies}) {
                                         <>
                                             <img src={movie.image} alt={movie.name} />
                                             <div className="movie-info">
-                                                <h2>{movie.name} {movie.year_released}</h2>
-                                                <textarea placeholder="Add a review..." defaultValue={selectedReview.text} id = "edit-text"
+                                                <h2>{movie.name} {movie.yearReleased}</h2>
+                                                <textarea placeholder="Add a review..." value={selectedReview.text} id = "edit-text"
                                                           onChange={(e) => setEditText(e.target.value)}
                                                 />
                                                 <p>Rating:
@@ -201,7 +407,7 @@ export default function Details({setReviewState, allReviews, allMovies}) {
                                         <>
                                             <img src={movie.image} alt={movie.name} />
                                             <div className="movie-info">
-                                                <h2>{movie.name} {movie.year_released}</h2>
+                                                <h2>{movie.name} {movie.yearReleased}</h2>
                                                 <textarea placeholder="Add a review..." id = "edit-text"
                                                           onChange={(e) => setEditText(e.target.value)}
                                                 />
