@@ -8,6 +8,7 @@ import Details from './pages/detail/Details.jsx'
 import About from './pages/landing_page/About.jsx'
 import Dashboard from './pages/dashboard/Dashboard.jsx'
 import {useState, useEffect} from "react";
+import {BASE_URL} from "./config.js";
 
 
 export function App() {
@@ -30,7 +31,7 @@ export function App() {
             }
         `;
             try {
-                const response = await fetch("http://localhost:8000/graphql", {
+                const response = await fetch(`${BASE_URL}/graphql`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ query: GET_ALL_MOVIES })

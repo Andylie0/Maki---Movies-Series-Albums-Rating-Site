@@ -2,7 +2,7 @@ import {useNavigate} from "react-router-dom"
 import './Register.css'
 import MakiLogo from "../../assets/MAKI.png";
 import {useState} from "react";
-
+import {BASE_URL} from "../../config.js";
 
 export default function Register() {
     const navigate = useNavigate();
@@ -22,7 +22,7 @@ export default function Register() {
         }
 
         try{
-            const response =  await fetch("http://localhost:8000/auth/register", {
+            const response =  await fetch(`${BASE_URL}/auth/register`, {
                 method : "POST",
                 headers:  {"Content-Type": "application/json"},
                 body: JSON.stringify(payload),

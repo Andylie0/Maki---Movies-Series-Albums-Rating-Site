@@ -7,6 +7,7 @@ import {useNavigate} from "react-router-dom";
 import {BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell, Legend } from 'recharts';
 import Cookie from "js-cookie";
 import { ResponsiveContainer } from 'recharts'
+import {BASE_URL} from "../../config.js";
 
 export default function Statistics({allReviews, allMovies}) {
     const nav = useNavigate();
@@ -30,7 +31,7 @@ export default function Statistics({allReviews, allMovies}) {
 
         const fetchStats = async () => {
             try {
-                const response = await fetch(`http://localhost:8000/movies/statistics?user_id=${userId}`);
+                const response = await fetch(`${BASE_URL}:8000/movies/statistics?user_id=${userId}`);
                 const data = await response.json();
                 setStatsData(data);
             } catch (error) {

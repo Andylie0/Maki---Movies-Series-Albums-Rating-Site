@@ -103,7 +103,7 @@ app = FastAPI(title="Maki API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origin_regex=r"https?://.*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -128,4 +128,5 @@ app.include_router(chat_controller.router)
 app.include_router(faker_controller.create_silver_router(faker_service))
 
 if __name__ == '__main__':
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True, ssl_keyfile = "./localhost+3-key.pem",
+                ssl_certfile="./localhost+3.pem")

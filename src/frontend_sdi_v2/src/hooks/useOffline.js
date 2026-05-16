@@ -1,4 +1,5 @@
 import {useState, useEffect, useRef} from "react";
+import {BASE_URL} from "../config.js";
 
 export const useOffline = () => {
     const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -33,7 +34,7 @@ export const useOffline = () => {
     const syncWithServer = async () => {
         const queue = offlineQueueRef.current;
         for (const action of queue) {
-            await fetch(`http://localhost:8000${action.url}`, {
+            await fetch(`${BASE_URL}${action.url}`, {
                 method: action.method,
                 headers: action.headers,
                 body: action.body,

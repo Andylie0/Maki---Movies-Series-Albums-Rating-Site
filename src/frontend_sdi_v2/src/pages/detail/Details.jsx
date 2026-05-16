@@ -6,6 +6,7 @@ import hidoina from "../../assets/hidoina.png";
 import {useState, useEffect} from "react";
 import './Details.css'
 import Cookie from 'js-cookie'
+import {BASE_URL, WB_URL} from "../../config.js";
 
 
 export default function Details({ allReviews, setReviewState, allMovies, isOnline, addToQueue}) {
@@ -51,7 +52,7 @@ export default function Details({ allReviews, setReviewState, allMovies, isOnlin
         `;
 
         try {
-            const response = await fetch("http://localhost:8000/graphql", {
+            const response = await fetch(`${BASE_URL}/graphql`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -100,7 +101,7 @@ export default function Details({ allReviews, setReviewState, allMovies, isOnlin
                 }
             `;
             try {
-                const response = await fetch("http://localhost:8000/graphql", {
+                const response = await fetch(`${BASE_URL}/graphql`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -134,7 +135,7 @@ export default function Details({ allReviews, setReviewState, allMovies, isOnlin
     }, [id]);
 
     useEffect(() => {
-        const socket = new WebSocket('ws://localhost:8000/ws');
+        const socket = new WebSocket(`${WB_URL}/ws`);
 
         socket.onmessage = (event) => {
             const message = JSON.parse(event.data);
@@ -203,7 +204,7 @@ export default function Details({ allReviews, setReviewState, allMovies, isOnlin
         }
 
         try {
-            const response = await fetch(`http://localhost:8000/reviews/${selectedReview.id}?user_id=${userId}`, {
+            const response = await fetch(`${BASE_URL}/reviews/${selectedReview.id}?user_id=${userId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
@@ -246,7 +247,7 @@ export default function Details({ allReviews, setReviewState, allMovies, isOnlin
         }
 
         try {
-            const response = await fetch(`http://localhost:8000/reviews/?user_id=${userId}`, {
+            const response = await fetch(`${BASE_URL}/reviews/?user_id=${userId}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),

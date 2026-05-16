@@ -6,6 +6,7 @@ import ProfileIcon from '../../assets/profile_img.png'
 import ParticlesBackground from './Particles.jsx'
 import {useNavigate} from "react-router-dom"
 import Cookie from 'js-cookie'
+import {BASE_URL, WB_URL} from "../../config.js";
 
 export function Journal({allReviews, setReviewState, allMovies, isOnline, addToQueue}){
     const storedUser = JSON.parse(localStorage.getItem('user')) || null;
@@ -57,7 +58,7 @@ export function Journal({allReviews, setReviewState, allMovies, isOnline, addToQ
             }
         `;
         try {
-            const response = await fetch("http://localhost:8000/graphql", {
+            const response = await fetch(`${BASE_URL}/graphql`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -99,7 +100,7 @@ export function Journal({allReviews, setReviewState, allMovies, isOnline, addToQ
     }, [currentPage, tableSearch, isOnline]);
 
     useEffect(() => {
-        const socket = new WebSocket('ws://localhost:8000/ws');
+        const socket = new WebSocket(`${WB_URL}/ws`);
 
         socket.onmessage = (event) => {
             const message = JSON.parse(event.data);
@@ -192,7 +193,7 @@ export function Journal({allReviews, setReviewState, allMovies, isOnline, addToQ
             return;
         }
 
-        const response = await fetch(`http://localhost:8000/reviews/${selectedReview.id}?user_id=${userId}`, {
+        const response = await fetch(`${BASE_URL}/reviews/${selectedReview.id}?user_id=${userId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
@@ -217,7 +218,7 @@ export function Journal({allReviews, setReviewState, allMovies, isOnline, addToQ
             return;
         }
 
-        const response = await fetch(`http://localhost:8000/reviews/${id}?user_id=${userId}`, {
+        const response = await fetch(`${BASE_URL}/reviews/${id}?user_id=${userId}`, {
             method: 'DELETE'
         });
 

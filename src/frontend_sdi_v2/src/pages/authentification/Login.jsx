@@ -3,6 +3,7 @@ import './Login.css'
 import MakiLogo from '../../assets/MAKI.png'
 import helloDaddyAudio from '../../assets/hello-daddy-sound-effect-made-with-Voicemod.mp3'
 import {useState} from "react";
+import {BASE_URL} from "../../config.js";
 
 export function Login(){
     const navigate = useNavigate();
@@ -23,7 +24,7 @@ export function Login(){
         }
 
         try {
-            const response = await fetch("http://localhost:8000/auth/login", {
+            const response = await fetch(`${BASE_URL}/auth/login`, {
                 method : "POST",
                 headers:  {"Content-Type": "application/json"},
                 body: JSON.stringify(payload),

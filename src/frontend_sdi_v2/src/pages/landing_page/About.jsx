@@ -5,6 +5,7 @@ import {useEffect, useRef, useState} from "react";
 import './About.css'
 import '../master_view/Journal.css'
 import Cookie from 'js-cookie'
+import {BASE_URL, WB_URL} from "../../config.js";
 
 export default function About({allMovies}) {
 
@@ -25,12 +26,12 @@ export default function About({allMovies}) {
     }, [messages]);
 
     useEffect(() => {
-        fetch("http://localhost:8000/chat/history")
+        fetch(`${BASE_URL}/chat/history`)
             .then(res => res.json())
             .then(data => setMessages(data || []))
             .catch(err => console.error("NoSQL History Error:", err));
 
-        const socket = new WebSocket('ws://localhost:8000/ws');
+        const socket = new WebSocket(`${WB_URL}/ws`);
 
         socket.onmessage = (event) => {
             const msg = JSON.parse(event.data);
@@ -53,7 +54,7 @@ export default function About({allMovies}) {
             text: messageToSend
         };
         try {
-            await fetch("http://localhost:8000/chat/send", {
+            await fetch(`${BASE_URL}/chat/send`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
