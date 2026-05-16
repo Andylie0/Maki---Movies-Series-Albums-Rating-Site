@@ -1,7 +1,10 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
+from dotenv import load_dotenv
+import os
 
-SQLALCHEMY_DATABASE_URL = "postgresql+psycopg2://admin:18gzPUicEvwXQCZDfUFxs3AYnpYK8SUt@dpg-d7qrtuv7f7vs73cg904g-a.frankfurt-postgres.render.com/sma_journal"
+load_dotenv()
+SQLALCHEMY_DATABASE_URL = os.environ.get("RENDER")
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

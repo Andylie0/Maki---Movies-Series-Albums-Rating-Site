@@ -31,7 +31,7 @@ export default function Statistics({allReviews, allMovies}) {
 
         const fetchStats = async () => {
             try {
-                const response = await fetch(`${BASE_URL}:8000/movies/statistics?user_id=${userId}`);
+                const response = await fetch(`${BASE_URL}/movies/statistics?user_id=${userId}`);
                 const data = await response.json();
                 setStatsData(data);
             } catch (error) {

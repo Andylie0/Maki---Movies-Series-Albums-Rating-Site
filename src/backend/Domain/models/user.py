@@ -9,6 +9,7 @@ class UserModel(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(50), unique=True, index=True)
     password = Column(String(255), nullable=False)
+    image = Column(String(255), nullable=True)
 
     role = Column(String(20), default="user")
     reviews = relationship("ReviewModel", back_populates="author")

@@ -1,6 +1,10 @@
 import redis
+import os
+from dotenv import load_dotenv
 
-REDIS_URL="rediss://default:gQAAAAAAAb-9AAIgcDFkMDUzODIwNjQ3ODg0YjA2OTE0MDM4Y2E1MjBkOTI0ZA@eager-hamster-114621.upstash.io:6379"
+load_dotenv()
+
+REDIS_URL=os.environ.get("REDIS")
 
 try:
     redis_client = redis.from_url(REDIS_URL, decode_responses=True)

@@ -12,6 +12,8 @@ export function Journal({allReviews, setReviewState, allMovies, isOnline, addToQ
     const storedUser = JSON.parse(localStorage.getItem('user')) || null;
     const userId = storedUser.id;
 
+    const imageUser = JSON.parse(localStorage.getItem('user'))?.image;
+
     const [isLoading, setIsLoading] = useState(false);
     const [activeTab, setActiveTab] = useState(Cookie.get("activeTab") || "table");
     const [activePage, setActivePage] = useState("journal");
@@ -299,7 +301,7 @@ export function Journal({allReviews, setReviewState, allMovies, isOnline, addToQ
                         onClick={() => setActivePage("journal")}>Journal</button>
                 <button className={`watchlist-button-header ${activePage === "watchlist" ? "active" : ""}`}
                         onClick={() => setActivePage("watchlist")}>Watchlist</button>
-                <img src ={ProfileIcon} alt= "user_icon" className="user-icon"/>
+                <img src ={imageUser != "null" ? imageUser : ProfileIcon} alt= "user_icon" className="user-icon"/>
             </header>
 
             <main className="main-content">
