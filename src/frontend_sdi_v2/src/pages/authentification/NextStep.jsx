@@ -1,48 +1,44 @@
-import {useNavigate} from "react-router-dom"
-import './Register.css'
 import MakiLogo from "../../assets/MAKI.png";
 import {useState} from "react";
+import {useNavigate} from "react-router-dom";
 import {BASE_URL} from "../../config.js";
 
-export default function Register() {
+export default function NextStep() {
     const navigate = useNavigate();
 
     const [password, setPassword] = useState("");
-    const [username, setUsername] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
 
-    async function handleSignUp(username, password, confirmPassword) {
+    async function handleLogin(password, confirmPassword) {
         if (password !== confirmPassword) {
             alert("Passwords do not match!");
             return;
         }
-        const payload = {
-            username : username,
-            password : password,
-        }
 
+        const token = localStorage.getItem("reset_token");
         try{
-            const response =  await fetch(`${BASE_URL}/auth/register`, {
+            const response =  await fetch(`${BASE_URL}/auth/reset-password`, {
                 method : "POST",
                 headers:  {"Content-Type": "application/json"},
                 credentials: "include",
-                body: JSON.stringify(payload),
-            });
-
-            if(response.ok)
+                body: JSON.stringify({
+                    token : token,
+                    new_password: password}),
+                }
+            );
+            if(response.ok) {
+                localStorage.removeItem("reset_token");
                 navigate('/');
-            else {
-                console.error("Login failed:", response.statusText);
             }
+            else {
+                console.error("Resetting password failed:", response.statusText);
+            }
+
         }
         catch (error) {
-            console.error("Error during registration:", error);
+            console.error("Error during resetting password:", error);
         }
 
-
-    }
-
-    function handleLogin(){
         navigate('/');
     }
 
@@ -50,13 +46,9 @@ export default function Register() {
         <div className="register-container">
             <div className="image-title">
                 <img src = {MakiLogo} alt= "logo_maki" className="logo-maki"/>
-                <h1>We are glad to have you!</h1>
+                <h1>Change Password!</h1>
             </div>
             <div className = "combo-signup">
-                <div className="user">
-                    <p>Username: </p>
-                    <input type="text" placeholder="Type your username here..."  onChange={(e) => setUsername(e.target.value)}/>
-                </div>
                 <div className="password">
                     <p>Password: </p>
                     <input type="password" placeholder="Type your password here..." onChange={(e) => setPassword(e.target.value)}/>
@@ -66,8 +58,7 @@ export default function Register() {
                     <input type="password" placeholder="Rewrite your password here..." onChange={(e) => setConfirmPassword(e.target.value)}/>
                 </div>
                 <div className="signup-section">
-                    <button className="register-button" onClick={() => handleSignUp(username,password,confirmPassword)}>Register!</button>
-                    <span className="login-link" onClick={() => handleLogin()}>Already have an account? Back to log in.</span>
+                    <button className="register-button" onClick={() => handleLogin(password,confirmPassword)}>Change!</button>
                 </div>
             </div>
         </div>

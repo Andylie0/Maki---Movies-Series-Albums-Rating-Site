@@ -55,6 +55,7 @@ export default function Details({ allReviews, setReviewState, allMovies, isOnlin
             const response = await fetch(`${BASE_URL}/graphql`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
+                credentials: "include",
                 body: JSON.stringify({
                     query: MOVIE_DETAILS_QUERY,
                     variables: { id: parseInt(id) }
@@ -104,6 +105,7 @@ export default function Details({ allReviews, setReviewState, allMovies, isOnlin
                 const response = await fetch(`${BASE_URL}/graphql`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
+                    credentials: "include",
                     body: JSON.stringify({
                         query: MOVIE_DETAILS_QUERY,
                         variables: { id: parseInt(id) }
@@ -191,6 +193,7 @@ export default function Details({ allReviews, setReviewState, allMovies, isOnlin
             addToQueue({
                 url: `/reviews/${selectedReview.id}?user_id=${userId}`,
                 method: 'PUT',
+                credentials: "include",
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
@@ -207,6 +210,7 @@ export default function Details({ allReviews, setReviewState, allMovies, isOnlin
             const response = await fetch(`${BASE_URL}/reviews/${selectedReview.id}?user_id=${userId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: "include",
                 body: JSON.stringify(payload),
             });
 
@@ -238,6 +242,7 @@ export default function Details({ allReviews, setReviewState, allMovies, isOnlin
                 url: `/reviews/?user_id=${userId}`,
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: "include",
                 body: JSON.stringify(payload)
             });
 
@@ -250,6 +255,7 @@ export default function Details({ allReviews, setReviewState, allMovies, isOnlin
             const response = await fetch(`${BASE_URL}/reviews/?user_id=${userId}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: "include",
                 body: JSON.stringify(payload),
             });
 

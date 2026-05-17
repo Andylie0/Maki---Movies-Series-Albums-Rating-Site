@@ -17,6 +17,10 @@ export function Login(){
         navigate("/journal");
     }
 
+    function handleForgotPassword() {
+        navigate("/forgot-password");
+    }
+
     async function handleLogin(username, password) {
         const payload = {
             username : username,
@@ -27,6 +31,7 @@ export function Login(){
             const response = await fetch(`${BASE_URL}/auth/login`, {
                 method : "POST",
                 headers:  {"Content-Type": "application/json"},
+                credentials: "include",
                 body: JSON.stringify(payload),
             });
 
@@ -36,6 +41,7 @@ export function Login(){
                 successHandleLogin();
             } else {
                 console.error("Login failed:", response.statusText);
+                alert(`Login failed: ${response.statusText}`);
             }
 
         }
@@ -62,7 +68,7 @@ export function Login(){
                 <div className="password">
                     <p>Password: </p>
                     <input type="password" placeholder="Type your password here..." onChange={(e) => setPassword(e.target.value)}/>
-                    <span className="forgot-password">Forgot Password?</span>
+                    <span className="forgot-password" onClick={()=> handleForgotPassword()}>Forgot Password?</span>
                 </div>
                 <div className="login-section">
                     <button className="login-button" onClick={() => handleLogin(username, password)}>Log in!</button>

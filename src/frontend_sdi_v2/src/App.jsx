@@ -3,12 +3,14 @@ import {useOffline} from "./hooks/useOffline";
 import Journal from './pages/master_view/Journal.jsx'
 import Login from './pages/authentification/Login.jsx'
 import Register from './pages/authentification/Register.jsx'
+import ForgotPassword from './pages/authentification/ForgotPassword.jsx'
 import Stats from './pages/master_view/Statistics.jsx'
 import Details from './pages/detail/Details.jsx'
 import About from './pages/landing_page/About.jsx'
 import Dashboard from './pages/dashboard/Dashboard.jsx'
 import {useState, useEffect} from "react";
 import {BASE_URL} from "./config.js";
+import NextStep from "./pages/authentification/NextStep.jsx";
 
 
 export function App() {
@@ -78,6 +80,8 @@ export function App() {
                     allMovies={allMovies}
                 />}/>
                 <Route path="/dashboard" element={<Dashboard />}/>
+                <Route path="/forgot-password" element={<ForgotPassword/>}/>
+                <Route path="/next-step" element={<NextStep/>}/>
             </Routes>
         </div>
     )

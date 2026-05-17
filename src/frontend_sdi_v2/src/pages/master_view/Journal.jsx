@@ -65,6 +65,7 @@ export function Journal({allReviews, setReviewState, allMovies, isOnline, addToQ
                 headers: {
                     "Content-Type": "application/json",
                 },
+                credentials: "include",
                 body: JSON.stringify({
                     query: GET_REVIEWS_QUERY,
                     variables: {
@@ -184,6 +185,7 @@ export function Journal({allReviews, setReviewState, allMovies, isOnline, addToQ
                 url: `/reviews/${selectedReview.id}?user_id=${userId}`,
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: "include",
                 body: JSON.stringify(payload)
             });
 
@@ -198,6 +200,7 @@ export function Journal({allReviews, setReviewState, allMovies, isOnline, addToQ
         const response = await fetch(`${BASE_URL}/reviews/${selectedReview.id}?user_id=${userId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
+            credentials: "include",
             body: JSON.stringify(payload),
         });
 
@@ -215,13 +218,14 @@ export function Journal({allReviews, setReviewState, allMovies, isOnline, addToQ
     //FUNCTION for delete button
     async function deleteReview(id) {
         if (!isOnline) {
-            addToQueue({ url: `/reviews/${id}?user_id=${userId}`, method: 'DELETE' });
+            addToQueue({ url: `/reviews/${id}?user_id=${userId}`, method: 'DELETE', credentials: "include", });
             setReviewState(allReviews.filter(r => r.id !== id));
             return;
         }
 
         const response = await fetch(`${BASE_URL}/reviews/${id}?user_id=${userId}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            credentials: "include",
         });
 
         if (response.ok) {

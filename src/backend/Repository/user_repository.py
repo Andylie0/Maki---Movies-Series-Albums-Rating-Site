@@ -13,3 +13,7 @@ class UserRepository:
         self.db.commit()
         self.db.refresh(user)
         return user
+
+    def update(self, user: UserModel):
+        self.db.commit()
+        self.db.refresh(user)
